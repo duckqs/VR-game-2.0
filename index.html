@@ -3,6 +3,8 @@
 
 <head>
 
+  <title>Shiganshina District &mdash; Attack on Titan VR</title>
+
   <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
 
   <script>
@@ -20,26 +22,87 @@
   </script>
 
   <script>
-    // Draw a simple repeating brick pattern onto a canvas so we don't
-    // depend on an external texture file for the wall material.
     window.addEventListener('DOMContentLoaded', function () {
-      var canvas = document.getElementById('brick-canvas');
-      var ctx = canvas.getContext('2d');
-      var brickWidth = 64;
-      var brickHeight = 32;
-      var mortar = 4;
 
-      ctx.fillStyle = '#9b9b93';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Wall Maria's stone blocks, drawn onto a canvas so the walls read as
+      // giant masonry rather than an ordinary building brick wall.
+      var stoneCanvas = document.getElementById('stone-canvas');
+      var sctx = stoneCanvas.getContext('2d');
+      var blockWidth = 64;
+      var blockHeight = 40;
+      var mortar = 5;
 
-      for (var row = 0, y = 0; y < canvas.height; row++, y += brickHeight) {
-        var offset = (row % 2 === 0) ? 0 : -brickWidth / 2;
-        for (var x = offset; x < canvas.width; x += brickWidth) {
-          var shade = 150 + Math.floor(Math.random() * 40);
-          ctx.fillStyle = 'rgb(' + shade + ',' + Math.floor(shade * 0.42) + ',' + Math.floor(shade * 0.32) + ')';
-          ctx.fillRect(x + mortar / 2, y + mortar / 2, brickWidth - mortar, brickHeight - mortar);
+      sctx.fillStyle = '#5c6066';
+      sctx.fillRect(0, 0, stoneCanvas.width, stoneCanvas.height);
+
+      for (var row = 0, y = 0; y < stoneCanvas.height; row++, y += blockHeight) {
+        var offset = (row % 2 === 0) ? 0 : -blockWidth / 2;
+        for (var x = offset; x < stoneCanvas.width; x += blockWidth) {
+          var shade = 110 + Math.floor(Math.random() * 45);
+          sctx.fillStyle = 'rgb(' + shade + ',' + (shade + 4) + ',' + (shade + 8) + ')';
+          sctx.fillRect(x + mortar / 2, y + mortar / 2, blockWidth - mortar, blockHeight - mortar);
+          // Faint crack detail for a weathered, ancient look.
+          if (Math.random() > 0.6) {
+            sctx.strokeStyle = 'rgba(0,0,0,0.15)';
+            sctx.beginPath();
+            sctx.moveTo(x + mortar, y + mortar);
+            sctx.lineTo(x + blockWidth * 0.4, y + blockHeight * 0.7);
+            sctx.stroke();
+          }
         }
       }
+
+      // Cobblestone street texture for the ground.
+      var groundCanvas = document.getElementById('ground-canvas');
+      var gctx = groundCanvas.getContext('2d');
+      gctx.fillStyle = '#4a4238';
+      gctx.fillRect(0, 0, groundCanvas.width, groundCanvas.height);
+      for (var i = 0; i < 900; i++) {
+        var gx = Math.random() * groundCanvas.width;
+        var gy = Math.random() * groundCanvas.height;
+        var r = 4 + Math.random() * 6;
+        var gshade = 55 + Math.floor(Math.random() * 40);
+        gctx.fillStyle = 'rgb(' + gshade + ',' + Math.floor(gshade * 0.9) + ',' + Math.floor(gshade * 0.78) + ')';
+        gctx.beginPath();
+        gctx.arc(gx, gy, r, 0, Math.PI * 2);
+        gctx.fill();
+      }
+
+      // The Wings of Freedom emblem (Survey Corps insignia): a navy wing
+      // paired with a white wing, mirrored from a central seam.
+      var emblemCanvas = document.getElementById('emblem-canvas');
+      var ectx = emblemCanvas.getContext('2d');
+      ectx.clearRect(0, 0, emblemCanvas.width, emblemCanvas.height);
+      ectx.fillStyle = 'rgba(235, 228, 210, 0.95)';
+      ectx.fillRect(0, 0, emblemCanvas.width, emblemCanvas.height);
+
+      function drawWing(cx, cy, dir, color) {
+        var feathers = 6;
+        for (var f = 0; f < feathers; f++) {
+          var len = 40 + f * 16;
+          var angle = dir * (0.15 + f * 0.11);
+          ectx.save();
+          ectx.translate(cx, cy);
+          ectx.rotate(angle);
+          ectx.fillStyle = color;
+          ectx.strokeStyle = 'rgba(0,0,0,0.4)';
+          ectx.lineWidth = 1.5;
+          ectx.beginPath();
+          ectx.ellipse(dir * len * 0.55, 0, len * 0.55, 14, 0, 0, Math.PI * 2);
+          ectx.fill();
+          ectx.stroke();
+          ectx.restore();
+        }
+      }
+
+      var midX = emblemCanvas.width / 2;
+      var midY = emblemCanvas.height / 2 + 10;
+      drawWing(midX, midY, -1, '#1c3f6e');
+      drawWing(midX, midY, 1, '#e9e9e9');
+      ectx.fillStyle = '#2b2b2b';
+      ectx.beginPath();
+      ectx.arc(midX, midY, 8, 0, Math.PI * 2);
+      ectx.fill();
     });
   </script>
 
@@ -50,27 +113,30 @@
   <a-scene>
 
     <a-assets>
-      <canvas id="brick-canvas" width="256" height="256"></canvas>
+      <canvas id="stone-canvas" width="256" height="256"></canvas>
+      <canvas id="ground-canvas" width="256" height="256"></canvas>
+      <canvas id="emblem-canvas" width="256" height="160"></canvas>
     </a-assets>
 
     <a-entity id="rig" camera look-controls wasd-controls="acceleration: 40" position="0 1.6 0" room-bounds>
     </a-entity>
 
+    <!-- Cobblestone street of Shiganshina -->
     <a-plane
       position="0 0 0"
       rotation="-90 0 0"
       width="20"
       height="20"
-      color="#333333">
+      material="src: #ground-canvas; repeat: 8 8; roughness: 1">
     </a-plane>
 
-    <!-- North wall -->
+    <!-- North wall (Wall Maria, facing the exterior where the Titan looms) -->
     <a-box
       position="0 2 -10"
       width="20.3"
       height="4"
       depth="0.3"
-      material="src: #brick-canvas; repeat: 6 1">
+      material="src: #stone-canvas; repeat: 6 1">
     </a-box>
 
     <!-- South wall -->
@@ -79,7 +145,7 @@
       width="20.3"
       height="4"
       depth="0.3"
-      material="src: #brick-canvas; repeat: 6 1">
+      material="src: #stone-canvas; repeat: 6 1">
     </a-box>
 
     <!-- East wall -->
@@ -88,7 +154,7 @@
       width="0.3"
       height="4"
       depth="20.3"
-      material="src: #brick-canvas; repeat: 6 1">
+      material="src: #stone-canvas; repeat: 6 1">
     </a-box>
 
     <!-- West wall -->
@@ -97,8 +163,81 @@
       width="0.3"
       height="4"
       depth="20.3"
-      material="src: #brick-canvas; repeat: 6 1">
+      material="src: #stone-canvas; repeat: 6 1">
     </a-box>
+
+    <!-- District sign -->
+    <a-entity
+      text="value: WALL MARIA \n SHIGANSHINA DISTRICT; align: center; color: #f2ede0; width: 6"
+      position="0 3.4 9.8"
+      rotation="0 180 0">
+    </a-entity>
+
+    <!-- Wings of Freedom banner, mounted on the interior south wall -->
+    <a-plane
+      position="0 2.4 9.83"
+      rotation="0 180 0"
+      width="2"
+      height="1.25"
+      material="src: #emblem-canvas; transparent: true">
+    </a-plane>
+
+    <!-- ODM gear gas canister prop, dropped near the spawn point -->
+    <a-entity position="1.4 0 2.5" rotation="0 0 90">
+      <a-cylinder radius="0.18" height="0.6" color="#7a8b6f"></a-cylinder>
+      <a-cylinder radius="0.2" height="0.08" position="0 0.34" color="#2e2e2e"></a-cylinder>
+      <a-cylinder radius="0.2" height="0.08" position="0 -0.34" color="#2e2e2e"></a-cylinder>
+    </a-entity>
+
+    <!-- A Survey Corps blade left on the cobblestones -->
+    <a-box position="-1.8 0.02 2.2" rotation="0 35 0" width="0.06" height="0.02" depth="0.9" color="#c8ccd0" metalness="0.6" roughness="0.3"></a-box>
+    <a-box position="-1.8 0.02 1.7" rotation="0 35 0" width="0.1" height="0.03" depth="0.2" color="#5a3a2a"></a-box>
+
+    <!-- Emergency signal flare warning of a Titan breach -->
+    <a-cylinder position="3.5 0.5 -3" radius="0.03" height="1" color="#333333"></a-cylinder>
+    <a-sphere position="3.5 1.1 -3" radius="0.12" color="#3a1f1f" emissive="#ff2200" emissive-intensity="0.6"></a-sphere>
+    <a-light type="point" position="3.5 1.3 -3" color="#ff4400" intensity="0.6" distance="6"></a-light>
+
+    <!-- The Colossal Titan, looming beyond Wall Maria -->
+    <a-entity id="titan" position="0 0 -14">
+      <a-entity animation="property: rotation; dir: alternate; dur: 4000; easing: easeInOutSine; loop: true; to: 0 6 0"
+                 animation__bob="property: position; dir: alternate; dur: 3000; easing: easeInOutSine; loop: true; to: 0 0.3 0">
+
+        <!-- Torso rising above the wall line -->
+        <a-cylinder position="0 6 0" radius="1.8" height="6" color="#a8654f"></a-cylinder>
+
+        <!-- Arms hanging at the sides -->
+        <a-cylinder position="-2.1 5.5" radius="0.55" height="5" rotation="0 0 8" color="#8f4f3c"></a-cylinder>
+        <a-cylinder position="2.1 5.5" radius="0.55" height="5" rotation="0 0 -8" color="#8f4f3c"></a-cylinder>
+
+        <!-- Neck and head -->
+        <a-cylinder position="0 9.2" radius="0.9" height="1.4" color="#c07a5f"></a-cylinder>
+        <a-sphere position="0 10.8" radius="1.5" color="#d99a7d"></a-sphere>
+
+        <!-- Windswept hair -->
+        <a-sphere position="0 11.6" radius="1.2" color="#2b2118" theta-start="0" theta-length="100"></a-sphere>
+
+        <!-- Blank, lidless Titan eyes -->
+        <a-sphere position="-0.55 10.9 1.3" radius="0.22" color="#f5f0e6"></a-sphere>
+        <a-sphere position="0.55 10.9 1.3" radius="0.22" color="#f5f0e6"></a-sphere>
+
+        <!-- Ever-present grin -->
+        <a-box position="0 10.35 1.4" width="1.1" height="0.18" depth="0.1" color="#3a1414"></a-box>
+        <a-box position="-0.4 10.42 1.45" width="0.15" height="0.1" depth="0.05" color="#f2f2f2"></a-box>
+        <a-box position="0 10.42 1.45" width="0.15" height="0.1" depth="0.05" color="#f2f2f2"></a-box>
+        <a-box position="0.4 10.42 1.45" width="0.15" height="0.1" depth="0.05" color="#f2f2f2"></a-box>
+
+        <!-- Vented steam, fading in and out -->
+        <a-sphere position="-1.6 8.5 0" radius="0.35" color="#ffffff" opacity="0.5" transparent="true"
+                  animation="property: opacity; dir: alternate; dur: 1800; loop: true; to: 0"
+                  animation__rise="property: position; dir: alternate; dur: 1800; loop: true; to: -1.6 9.3 0">
+        </a-sphere>
+        <a-sphere position="1.7 8.7 0" radius="0.3" color="#ffffff" opacity="0.4" transparent="true"
+                  animation="property: opacity; dir: alternate; dur: 2200; loop: true; to: 0"
+                  animation__rise="property: position; dir: alternate; dur: 2200; loop: true; to: 1.7 9.5 0">
+        </a-sphere>
+      </a-entity>
+    </a-entity>
 
     <a-light type="ambient" color="#ffffff" intensity="0.4"></a-light>
 
